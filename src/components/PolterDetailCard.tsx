@@ -35,7 +35,7 @@ const PolterDetailCard = ({ polter, onClose }: Props) => {
 
   return (
     <>
-      <div className="w-full max-w-md overflow-hidden rounded-t-2xl sm:rounded-2xl border bg-card shadow-2xl max-h-[85vh] flex flex-col">
+      <div className="w-full min-w-[340px] max-w-md overflow-hidden rounded-t-2xl sm:rounded-2xl border bg-card shadow-2xl max-h-[85vh] flex flex-col">
         {/* Drag indicator */}
         <div className="flex justify-center pt-2.5 pb-0 sm:hidden">
           <div className="h-1 w-10 rounded-full bg-muted-foreground/25" />
