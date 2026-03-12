@@ -15,8 +15,9 @@ interface Props {
 const BookingModal = ({ polter, defaultType, onClose }: Props) => {
   const [typ, setTyp] = useState<BookingType>(defaultType);
   const [menge, setMenge] = useState('');
-  const { addBooking, getBookingsForPolter } = useApp();
+  const { addBooking, getBookingsForPolter, getBestand } = useApp();
   const recentBookings = getBookingsForPolter(polter.id).slice(0, 3);
+  const bestand = getBestand(polter.id);
 
   const handleSubmit = () => {
     const val = parseFloat(menge);
@@ -24,15 +25,17 @@ const BookingModal = ({ polter, defaultType, onClose }: Props) => {
       toast.error('Bitte gültige Menge eingeben');
       return;
     }
-    addBooking(polter.id, typ, val);
-    toast.success(`${typ === 'checkin' ? 'Einbuchung' : 'Ausbuchung'} erfolgreich: ${val} fm`);
-    onClose();
+    const success = addBooking(polter.id, typ, val);
+    if (success) {
+      toast.success(`${typ === 'checkin' ? 'Einbuchung' : 'Ausbuchung'} erfolgreich: ${val} fm`);
+      onClose();
+    }
   };
 
   return (
     <div className="fixed inset-0 z-[2000] flex items-end justify-center bg-black/50 sm:items-center">
-      <div className="w-full max-w-md rounded-t-2xl bg-card sm:rounded-2xl">
-        <div className="flex items-center justify-between border-b px-5 py-4">
+      <div className="w-full max-w-md rounded-t-2xl bg-card sm:rounded-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between border-b px-5 py-4 sticky top-0 bg-card z-10">
           <h2 className="text-lg font-semibold text-foreground">Buchung</h2>
           <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-muted">
             <X className="h-5 w-5" />
@@ -43,7 +46,10 @@ const BookingModal = ({ polter, defaultType, onClose }: Props) => {
           <div className="rounded-lg bg-muted/50 px-4 py-3">
             <p className="text-sm text-muted-foreground">Polter</p>
             <p className="font-medium text-foreground">{polter.name}</p>
-            <p className="text-xs text-muted-foreground">{polter.sortiment} · {polter.volumen} fm</p>
+            <div className="mt-1 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">{polter.sortiment}</span>
+              <span className="text-sm font-semibold text-primary">Bestand: {bestand.toFixed(1)} fm</span>
+            </div>
           </div>
 
           <div className="flex gap-2 rounded-lg bg-muted p-1">
@@ -68,11 +74,17 @@ const BookingModal = ({ polter, defaultType, onClose }: Props) => {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">Menge (Festmeter)</label>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Menge (Festmeter)
+              {typ === 'checkout' && (
+                <span className="ml-2 text-xs font-normal text-muted-foreground">Max: {bestand.toFixed(1)} fm</span>
+              )}
+            </label>
             <input
               type="number"
               step="0.1"
               min="0"
+              max={typ === 'checkout' ? bestand : undefined}
               value={menge}
               onChange={(e) => setMenge(e.target.value)}
               placeholder="z.B. 35.2"

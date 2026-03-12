@@ -15,20 +15,26 @@ interface Props {
 const PolterDetailCard = ({ polter, onClose }: Props) => {
   const [tab, setTab] = useState<'beschreibung' | 'historie'>('beschreibung');
   const [bookingType, setBookingType] = useState<'checkin' | 'checkout' | null>(null);
-  const { getBookingsForPolter, role } = useApp();
+  const { getBookingsForPolter, getBestand, role } = useApp();
   const bookings = getBookingsForPolter(polter.id);
+  const bestand = getBestand(polter.id);
+
+  const handleBookingDone = () => {
+    setBookingType(null);
+    setTab('historie');
+  };
 
   return (
     <>
-      <div className="absolute right-4 top-4 z-[1000] w-80 overflow-hidden rounded-xl border bg-card shadow-lg sm:w-96">
-        <div className="flex items-center justify-between border-b bg-primary/5 px-4 py-3">
+      <div className="w-full max-w-md overflow-hidden rounded-t-2xl sm:rounded-xl border bg-card shadow-lg sm:max-w-sm md:max-w-md max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between border-b bg-primary/5 px-4 py-3 shrink-0">
           <h3 className="font-semibold text-foreground">{polter.name}</h3>
           <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="flex border-b">
+        <div className="flex border-b shrink-0">
           <button
             onClick={() => setTab('beschreibung')}
             className={`flex flex-1 items-center justify-center gap-1.5 py-2.5 text-sm font-medium transition-colors ${
@@ -49,7 +55,7 @@ const PolterDetailCard = ({ polter, onClose }: Props) => {
           </button>
         </div>
 
-        <div className="max-h-80 overflow-y-auto">
+        <div className="overflow-y-auto flex-1">
           {tab === 'beschreibung' ? (
             <div className="space-y-3 p-4">
               <div className="flex items-center justify-between">
@@ -57,8 +63,12 @@ const PolterDetailCard = ({ polter, onClose }: Props) => {
                 <span className="text-sm font-medium text-foreground">{polter.sortiment}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Volumen</span>
-                <span className="text-sm font-medium text-foreground">{polter.volumen} fm</span>
+                <span className="text-sm text-muted-foreground">Anfangsvolumen</span>
+                <span className="text-sm text-muted-foreground">{polter.volumen} fm</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-primary/10 px-3 py-2">
+                <span className="text-sm font-medium text-foreground">Aktueller Bestand</span>
+                <span className="text-base font-bold text-primary">{bestand.toFixed(1)} fm</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Status</span>
@@ -141,7 +151,7 @@ const PolterDetailCard = ({ polter, onClose }: Props) => {
         <BookingModal
           polter={polter}
           defaultType={bookingType}
-          onClose={() => setBookingType(null)}
+          onClose={handleBookingDone}
         />
       )}
     </>

@@ -3,7 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { LocateFixed } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
-import { Polter, PolterStatus } from '@/lib/types';
+import { PolterStatus } from '@/lib/types';
 import PolterDetailCard from './PolterDetailCard';
 
 const statusColors: Record<PolterStatus, string> = {
@@ -15,19 +15,21 @@ const statusColors: Record<PolterStatus, string> = {
 };
 
 const PolterMapView = () => {
-  const { getFilteredPolter } = useApp();
+  const { getFilteredPolter, getPolterById } = useApp();
   const polter = getFilteredPolter();
-  const [selected, setSelected] = useState<Polter | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.CircleMarker[]>([]);
+
+  const selected = selectedId ? getPolterById(selectedId) : undefined;
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
     const center: [number, number] = polter.length > 0
       ? [polter[0].lat, polter[0].lng]
-      : [48.135, 11.58];
+      : [47.39, 8.05];
 
     mapRef.current = L.map(containerRef.current).setView(center, 13);
 
@@ -44,11 +46,9 @@ const PolterMapView = () => {
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // Clear old markers
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
 
-    // Add new markers
     polter.forEach((p) => {
       const marker = L.circleMarker([p.lat, p.lng], {
         radius: 12,
@@ -59,7 +59,7 @@ const PolterMapView = () => {
         fillOpacity: 1,
       }).addTo(mapRef.current!);
 
-      marker.on('click', () => setSelected(p));
+      marker.on('click', () => setSelectedId(p.id));
       
       marker.bindTooltip(p.name, {
         direction: 'top',
@@ -69,7 +69,6 @@ const PolterMapView = () => {
       markersRef.current.push(marker);
     });
 
-    // Fit bounds
     if (polter.length > 0) {
       const bounds = L.latLngBounds(polter.map(p => [p.lat, p.lng] as [number, number]));
       mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
@@ -82,7 +81,6 @@ const PolterMapView = () => {
       (pos) => {
         const { latitude, longitude } = pos.coords;
         mapRef.current?.setView([latitude, longitude], 15);
-        // Show a pulsing marker at user location
         L.circleMarker([latitude, longitude], {
           radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, opacity: 1, fillOpacity: 1,
         }).addTo(mapRef.current!).bindTooltip('Mein Standort', { direction: 'top', offset: [0, -10] }).openTooltip();
@@ -105,14 +103,16 @@ const PolterMapView = () => {
         className="absolute bottom-6 left-4 z-[1000] flex items-center gap-1.5 rounded-lg bg-card px-3 py-2 text-sm font-medium text-foreground shadow-lg border transition-colors hover:bg-muted"
       >
         <LocateFixed className="h-4 w-4 text-primary" />
-        Mein Standort
+        <span className="hidden sm:inline">Mein Standort</span>
       </button>
 
       {selected && (
-        <PolterDetailCard
-          polter={selected}
-          onClose={() => setSelected(null)}
-        />
+        <div className="absolute right-2 top-2 z-[1000] sm:right-4 sm:top-4 w-[calc(100%-1rem)] sm:w-96">
+          <PolterDetailCard
+            polter={selected}
+            onClose={() => setSelectedId(null)}
+          />
+        </div>
       )}
     </div>
   );
