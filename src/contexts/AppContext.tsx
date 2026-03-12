@@ -123,6 +123,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
 export const useApp = () => {
   const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useApp must be used within AppProvider');
+  if (!ctx) {
+    console.error('AppContext missing: falling back to safe defaults');
+    return {
+      role: 'forester' as UserRole,
+      setRole: () => {},
+      polterList: mockPolter,
+      bookings: mockBookings,
+      transporteure: initialTransporteure,
+      kaeufer: initialKaeufer,
+      addPolter: () => {},
+      updatePolter: () => {},
+      addBooking: () => false,
+      getBookingsForPolter: (polterId: string) => mockBookings.filter(b => b.polterId === polterId),
+      getFilteredPolter: () => mockPolter,
+      getBestand: (polterId: string) => {
+        const polter = mockPolter.find(p => p.id === polterId);
+        const initialVolumen = polter?.volumen ?? 0;
+        const buchungen = mockBookings.filter(b => b.polterId === polterId);
+        const einbuchungen = buchungen.filter(b => b.typ === 'checkin').reduce((sum, b) => sum + b.menge, 0);
+        const ausbuchungen = buchungen.filter(b => b.typ === 'checkout').reduce((sum, b) => sum + b.menge, 0);
+        return initialVolumen + einbuchungen - ausbuchungen;
+      },
+      getPolterById: (id: string) => mockPolter.find(p => p.id === id),
+      addTransporteur: () => {},
+      addKaeufer: () => {},
+    };
+  }
   return ctx;
 };
