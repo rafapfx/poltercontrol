@@ -13,9 +13,9 @@ const PolterListView = ({ onSelectPolter }: Props) => {
 
   if (polter.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-        <MapPin className="mb-2 h-8 w-8" />
-        <p>Keine Polter vorhanden</p>
+      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+        <MapPin className="mb-3 h-10 w-10" />
+        <p className="text-base">Keine Polter vorhanden</p>
       </div>
     );
   }
@@ -28,16 +28,17 @@ const PolterListView = ({ onSelectPolter }: Props) => {
           <button
             key={p.id}
             onClick={() => onSelectPolter(p)}
-            className="flex w-full items-center gap-3 rounded-xl border bg-card p-3 text-left shadow-sm transition-colors hover:bg-muted/30 active:bg-muted/50"
+            className="flex w-full items-center gap-3 rounded-xl border bg-card p-4 text-left shadow-sm transition-all hover:bg-muted/30 active:scale-[0.98] active:bg-muted/50"
           >
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground truncate">{p.name}</span>
+                <span className="font-semibold text-foreground truncate">{p.name}</span>
                 <StatusBadge status={p.status} />
               </div>
-              <p className="mt-0.5 text-xs text-muted-foreground truncate">
-                {p.sortiment} · Bestand: {getBestand(p.id).toFixed(1)} fm
-              </p>
+              <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                <span>{p.sortiment}</span>
+                <span className="font-medium text-foreground">{getBestand(p.id).toFixed(1)} fm</span>
+              </div>
               {role === 'transporter' && (
                 <p className="mt-0.5 text-xs text-muted-foreground truncate">{p.forstbetrieb}</p>
               )}
@@ -45,7 +46,7 @@ const PolterListView = ({ onSelectPolter }: Props) => {
                 <p className="mt-0.5 text-xs text-muted-foreground truncate">↗ {p.transporteurName}</p>
               )}
             </div>
-            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/50" />
           </button>
         ))}
       </div>
