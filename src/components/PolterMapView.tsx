@@ -76,6 +76,22 @@ const PolterMapView = () => {
     }
   }, [polter]);
 
+  const handleLocate = () => {
+    if (!navigator.geolocation || !mapRef.current) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        mapRef.current?.setView([latitude, longitude], 15);
+        // Show a pulsing marker at user location
+        L.circleMarker([latitude, longitude], {
+          radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, opacity: 1, fillOpacity: 1,
+        }).addTo(mapRef.current!).bindTooltip('Mein Standort', { direction: 'top', offset: [0, -10] }).openTooltip();
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   return (
     <div className="relative h-full w-full">
       <div
@@ -83,6 +99,14 @@ const PolterMapView = () => {
         className="h-full w-full"
         style={{ minHeight: 'calc(100vh - 7.5rem)' }}
       />
+
+      <button
+        onClick={handleLocate}
+        className="absolute bottom-6 left-4 z-[1000] flex items-center gap-1.5 rounded-lg bg-card px-3 py-2 text-sm font-medium text-foreground shadow-lg border transition-colors hover:bg-muted"
+      >
+        <LocateFixed className="h-4 w-4 text-primary" />
+        Mein Standort
+      </button>
 
       {selected && (
         <PolterDetailCard

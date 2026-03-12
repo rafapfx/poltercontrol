@@ -13,6 +13,7 @@ interface Props {
 
 const CreatePolterDialog = ({ open, onClose }: Props) => {
   const { addPolter } = useApp();
+  const [locating, setLocating] = useState(false);
   const [form, setForm] = useState({
     name: '',
     sortiment: sortimentOptions[0],
