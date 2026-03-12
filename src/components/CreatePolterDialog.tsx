@@ -27,15 +27,14 @@ const CreatePolterDialog = ({ open, onClose }: Props) => {
 
   if (!open) return null;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.name || !form.volumen) {
       toast.error('Bitte Name und Volumen eingeben');
       return;
     }
     const t = transporteure.find(t => t.id === form.transporteurId);
     const k = kaeufer.find(k => k.id === form.kaeuferId);
-    const polter: Polter = {
-      id: `p-${Date.now()}`,
+    await addPolter({
       name: form.name,
       sortiment: form.sortiment,
       volumen: parseFloat(form.volumen),
@@ -50,8 +49,7 @@ const CreatePolterDialog = ({ open, onClose }: Props) => {
       kaeuferId: form.kaeuferId || null,
       kaeuferName: k?.name || null,
       erstelltAm: new Date().toISOString(),
-    };
-    addPolter(polter);
+    });
     toast.success('Polter erstellt');
     onClose();
   };

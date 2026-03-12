@@ -15,17 +15,17 @@ const ManagePartnersDialog = ({ open, onClose }: Props) => {
 
   if (!open) return null;
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     const name = newName.trim();
     if (!name) {
       toast.error('Bitte einen Namen eingeben');
       return;
     }
     if (tab === 'transporteure') {
-      addTransporteur(name);
+      await addTransporteur(name);
       toast.success(`Transporteur "${name}" hinzugefügt`);
     } else {
-      addKaeufer(name);
+      await addKaeufer(name);
       toast.success(`Käufer "${name}" hinzugefügt`);
     }
     setNewName('');
