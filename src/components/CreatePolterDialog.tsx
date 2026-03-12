@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { X, Plus, LocateFixed, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useApp } from '@/contexts/AppContext';
-import { sortimentOptions, transporteure, kaeufer } from '@/lib/mock-data';
+import { sortimentOptions } from '@/lib/mock-data';
 import { Polter } from '@/lib/types';
 
 interface Props {
@@ -11,15 +11,15 @@ interface Props {
 }
 
 const CreatePolterDialog = ({ open, onClose }: Props) => {
-  const { addPolter } = useApp();
+  const { addPolter, transporteure, kaeufer } = useApp();
   const [locating, setLocating] = useState(false);
   const [form, setForm] = useState({
     name: '',
     sortiment: sortimentOptions[0],
     volumen: '',
     beschreibung: '',
-    lat: '48.135',
-    lng: '11.58',
+    lat: '47.39',
+    lng: '8.18',
     eudrNummer: '',
     transporteurId: '',
     kaeuferId: '',
@@ -44,7 +44,7 @@ const CreatePolterDialog = ({ open, onClose }: Props) => {
       lng: parseFloat(form.lng),
       eudrNummer: form.eudrNummer || `EUDR-${Date.now()}`,
       status: form.transporteurId ? 'Transport zugewiesen' : 'Neu',
-      forstbetrieb: 'Forstbetrieb Müller',
+      forstbetrieb: 'Forstbetrieb Wettingen',
       transporteurId: form.transporteurId || null,
       transporteurName: t?.name || null,
       kaeuferId: form.kaeuferId || null,
@@ -72,7 +72,7 @@ const CreatePolterDialog = ({ open, onClose }: Props) => {
         <div className="max-h-[70vh] overflow-y-auto space-y-4 p-5">
           <div>
             <label className={labelClass}>Polter-Name *</label>
-            <input className={inputClass} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="z.B. Polter Waldweg Nord" />
+            <input className={inputClass} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="z.B. Polter Heitersberg" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -107,7 +107,7 @@ const CreatePolterDialog = ({ open, onClose }: Props) => {
                       setLocating(false);
                       toast.success('Standort ermittelt');
                     },
-                    (err) => {
+                    () => {
                       setLocating(false);
                       toast.error('Standort konnte nicht ermittelt werden');
                     },
