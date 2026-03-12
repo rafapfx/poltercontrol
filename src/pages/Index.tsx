@@ -7,16 +7,17 @@ import PolterDetailCard from '@/components/PolterDetailCard';
 import CreatePolterDialog from '@/components/CreatePolterDialog';
 import ManagePartnersDialog from '@/components/ManagePartnersDialog';
 import { useApp } from '@/contexts/AppContext';
-import { Polter } from '@/lib/types';
 
 type ViewMode = 'liste' | 'karte';
 
 const Index = () => {
   const [view, setView] = useState<ViewMode>('liste');
-  const [selectedPolter, setSelectedPolter] = useState<Polter | null>(null);
+  const [selectedPolterId, setSelectedPolterId] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showPartners, setShowPartners] = useState(false);
-  const { role } = useApp();
+  const { role, getPolterById } = useApp();
+
+  const selectedPolter = selectedPolterId ? getPolterById(selectedPolterId) : undefined;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -67,7 +68,7 @@ const Index = () => {
       <main className="flex-1">
         {view === 'liste' ? (
           <div className="bg-card">
-            <PolterListView onSelectPolter={setSelectedPolter} />
+            <PolterListView onSelectPolter={(p) => setSelectedPolterId(p.id)} />
           </div>
         ) : (
           <PolterMapView />
@@ -75,9 +76,9 @@ const Index = () => {
       </main>
 
       {selectedPolter && view === 'liste' && (
-        <div className="fixed inset-0 z-[1500] flex items-center justify-center bg-black/50" onClick={() => setSelectedPolter(null)}>
-          <div onClick={e => e.stopPropagation()} className="relative">
-            <PolterDetailCard polter={selectedPolter} onClose={() => setSelectedPolter(null)} />
+        <div className="fixed inset-0 z-[1500] flex items-end sm:items-center justify-center bg-black/50" onClick={() => setSelectedPolterId(null)}>
+          <div onClick={e => e.stopPropagation()} className="w-full sm:w-auto">
+            <PolterDetailCard polter={selectedPolter} onClose={() => setSelectedPolterId(null)} />
           </div>
         </div>
       )}

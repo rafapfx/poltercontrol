@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { UserRole, Polter, Booking, BookingType } from '@/lib/types';
 import { mockPolter, mockBookings } from '@/lib/mock-data';
+import { toast } from 'sonner';
 
 export interface Partner {
   id: string;
@@ -16,9 +17,11 @@ interface AppContextType {
   kaeufer: Partner[];
   addPolter: (polter: Polter) => void;
   updatePolter: (polter: Polter) => void;
-  addBooking: (polterId: string, typ: BookingType, menge: number) => void;
+  addBooking: (polterId: string, typ: BookingType, menge: number) => boolean;
   getBookingsForPolter: (polterId: string) => Booking[];
   getFilteredPolter: () => Polter[];
+  getBestand: (polterId: string) => number;
+  getPolterById: (id: string) => Polter | undefined;
   addTransporteur: (name: string) => void;
   addKaeufer: (name: string) => void;
 }
@@ -44,6 +47,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [transporteure, setTransporteure] = useState<Partner[]>(initialTransporteure);
   const [kaeufer, setKaeufer] = useState<Partner[]>(initialKaeufer);
 
+  const getBestand = useCallback((polterId: string) => {
+    const polter = polterList.find(p => p.id === polterId);
+    const initialVolumen = polter?.volumen ?? 0;
+    const buchungen = bookings.filter(b => b.polterId === polterId);
+    const einbuchungen = buchungen.filter(b => b.typ === 'checkin').reduce((sum, b) => sum + b.menge, 0);
+    const ausbuchungen = buchungen.filter(b => b.typ === 'checkout').reduce((sum, b) => sum + b.menge, 0);
+    return initialVolumen + einbuchungen - ausbuchungen;
+  }, [bookings, polterList]);
+
+  const getPolterById = useCallback((id: string) => {
+    return polterList.find(p => p.id === id);
+  }, [polterList]);
+
   const addPolter = useCallback((polter: Polter) => {
     setPolterList(prev => [...prev, polter]);
   }, []);
@@ -52,7 +68,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPolterList(prev => prev.map(p => p.id === polter.id ? polter : p));
   }, []);
 
-  const addBooking = useCallback((polterId: string, typ: BookingType, menge: number) => {
+  const addBooking = useCallback((polterId: string, typ: BookingType, menge: number): boolean => {
+    if (typ === 'checkout') {
+      const bestand = getBestand(polterId);
+      if (menge > bestand) {
+        toast.error(`Ausbuchung nicht möglich: Nur ${bestand.toFixed(1)} fm verfügbar`);
+        return false;
+      }
+    }
     const booking: Booking = {
       id: `bk-${Date.now()}`,
       polterId,
@@ -63,7 +86,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       erstelltAm: new Date().toISOString(),
     };
     setBookings(prev => [...prev, booking]);
-  }, [role]);
+    return true;
+  }, [role, getBestand]);
 
   const getBookingsForPolter = useCallback((polterId: string) => {
     return bookings.filter(b => b.polterId === polterId).sort((a, b) => new Date(b.erstelltAm).getTime() - new Date(a.erstelltAm).getTime());
@@ -91,7 +115,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   return (
-    <AppContext.Provider value={{ role, setRole, polterList, bookings, transporteure, kaeufer, addPolter, updatePolter, addBooking, getBookingsForPolter, getFilteredPolter, addTransporteur, addKaeufer }}>
+    <AppContext.Provider value={{ role, setRole, polterList, bookings, transporteure, kaeufer, addPolter, updatePolter, addBooking, getBookingsForPolter, getFilteredPolter, getBestand, getPolterById, addTransporteur, addKaeufer }}>
       {children}
     </AppContext.Provider>
   );
@@ -102,4 +126,3 @@ export const useApp = () => {
   if (!ctx) throw new Error('useApp must be used within AppProvider');
   return ctx;
 };
-
