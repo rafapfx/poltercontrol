@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { UserRole, Polter, Booking, BookingType } from '@/lib/types';
 import { mockPolter, mockBookings } from '@/lib/mock-data';
 import { toast } from 'sonner';
@@ -40,12 +40,59 @@ const initialKaeufer: Partner[] = [
   { id: 'b3', name: 'Biomasse Aargau AG' },
 ];
 
+const STORAGE_KEYS = {
+  role: 'forstcontrol.role',
+  polterList: 'forstcontrol.polterList',
+  bookings: 'forstcontrol.bookings',
+  transporteure: 'forstcontrol.transporteure',
+  kaeufer: 'forstcontrol.kaeufer',
+} as const;
+
+const readStorage = <T,>(key: string, fallback: T): T => {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const writeStorage = (key: string, value: unknown) => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // ignore storage errors
+  }
+};
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [role, setRole] = useState<UserRole>('forester');
-  const [polterList, setPolterList] = useState<Polter[]>(mockPolter);
-  const [bookings, setBookings] = useState<Booking[]>(mockBookings);
-  const [transporteure, setTransporteure] = useState<Partner[]>(initialTransporteure);
-  const [kaeufer, setKaeufer] = useState<Partner[]>(initialKaeufer);
+  const [role, setRole] = useState<UserRole>(() => readStorage<UserRole>(STORAGE_KEYS.role, 'forester'));
+  const [polterList, setPolterList] = useState<Polter[]>(() => readStorage<Polter[]>(STORAGE_KEYS.polterList, mockPolter));
+  const [bookings, setBookings] = useState<Booking[]>(() => readStorage<Booking[]>(STORAGE_KEYS.bookings, mockBookings));
+  const [transporteure, setTransporteure] = useState<Partner[]>(() => readStorage<Partner[]>(STORAGE_KEYS.transporteure, initialTransporteure));
+  const [kaeufer, setKaeufer] = useState<Partner[]>(() => readStorage<Partner[]>(STORAGE_KEYS.kaeufer, initialKaeufer));
+
+  useEffect(() => {
+    writeStorage(STORAGE_KEYS.role, role);
+  }, [role]);
+
+  useEffect(() => {
+    writeStorage(STORAGE_KEYS.polterList, polterList);
+  }, [polterList]);
+
+  useEffect(() => {
+    writeStorage(STORAGE_KEYS.bookings, bookings);
+  }, [bookings]);
+
+  useEffect(() => {
+    writeStorage(STORAGE_KEYS.transporteure, transporteure);
+  }, [transporteure]);
+
+  useEffect(() => {
+    writeStorage(STORAGE_KEYS.kaeufer, kaeufer);
+  }, [kaeufer]);
 
   const getBestand = useCallback((polterId: string) => {
     const polter = polterList.find(p => p.id === polterId);
