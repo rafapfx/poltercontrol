@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { UserRole, Polter, Booking, BookingType } from '@/lib/types';
-import { mockPolter, mockBookings } from '@/lib/mock-data';
+import { UserRole, Polter, Booking, BookingType, PolterStatus } from '@/lib/types';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export interface Partner {
@@ -15,84 +15,88 @@ interface AppContextType {
   bookings: Booking[];
   transporteure: Partner[];
   kaeufer: Partner[];
-  addPolter: (polter: Polter) => void;
-  updatePolter: (polter: Polter) => void;
-  addBooking: (polterId: string, typ: BookingType, menge: number) => boolean;
+  loading: boolean;
+  addPolter: (polter: Omit<Polter, 'id'>) => Promise<void>;
+  updatePolter: (polter: Polter) => Promise<void>;
+  addBooking: (polterId: string, typ: BookingType, menge: number) => Promise<boolean>;
   getBookingsForPolter: (polterId: string) => Booking[];
   getFilteredPolter: () => Polter[];
   getBestand: (polterId: string) => number;
   getPolterById: (id: string) => Polter | undefined;
-  addTransporteur: (name: string) => void;
-  addKaeufer: (name: string) => void;
+  addTransporteur: (name: string) => Promise<void>;
+  addKaeufer: (name: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const initialTransporteure: Partner[] = [
-  { id: 't1', name: 'Transport Frey AG' },
-  { id: 't2', name: 'Holztransporte Müller' },
-  { id: 't3', name: 'Fuhrwerk Schmid GmbH' },
-];
+// Map DB row to app type
+const mapPolterRow = (row: any): Polter => ({
+  id: row.id,
+  name: row.name,
+  sortiment: row.sortiment,
+  volumen: Number(row.volumen),
+  beschreibung: row.beschreibung,
+  lat: row.lat,
+  lng: row.lng,
+  eudrNummer: row.eudr_nummer,
+  status: row.status as PolterStatus,
+  forstbetrieb: row.forstbetrieb,
+  transporteurId: row.transporteur_id,
+  transporteurName: row.transporteur_name,
+  kaeuferId: row.kaeufer_id,
+  kaeuferName: row.kaeufer_name,
+  erstelltAm: row.created_at,
+});
 
-const initialKaeufer: Partner[] = [
-  { id: 'b1', name: 'Sägewerk Villiger' },
-  { id: 'b2', name: 'Holzhandel Zubler' },
-  { id: 'b3', name: 'Biomasse Aargau AG' },
-];
+const mapBookingRow = (row: any): Booking => ({
+  id: row.id,
+  polterId: row.polter_id,
+  typ: row.typ as BookingType,
+  menge: Number(row.menge),
+  fotoUrl: row.foto_url,
+  erstelltVon: row.erstellt_von,
+  erstelltAm: row.created_at,
+});
 
-const STORAGE_KEYS = {
-  role: 'forstcontrol.role',
-  polterList: 'forstcontrol.polterList',
-  bookings: 'forstcontrol.bookings',
-  transporteure: 'forstcontrol.transporteure',
-  kaeufer: 'forstcontrol.kaeufer',
-} as const;
-
-const readStorage = <T,>(key: string, fallback: T): T => {
-  if (typeof window === 'undefined') return fallback;
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-};
-
-const writeStorage = (key: string, value: unknown) => {
-  if (typeof window === 'undefined') return;
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // ignore storage errors
-  }
-};
+const ROLE_KEY = 'forstcontrol.role';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [role, setRole] = useState<UserRole>(() => readStorage<UserRole>(STORAGE_KEYS.role, 'forester'));
-  const [polterList, setPolterList] = useState<Polter[]>(() => readStorage<Polter[]>(STORAGE_KEYS.polterList, mockPolter));
-  const [bookings, setBookings] = useState<Booking[]>(() => readStorage<Booking[]>(STORAGE_KEYS.bookings, mockBookings));
-  const [transporteure, setTransporteure] = useState<Partner[]>(() => readStorage<Partner[]>(STORAGE_KEYS.transporteure, initialTransporteure));
-  const [kaeufer, setKaeufer] = useState<Partner[]>(() => readStorage<Partner[]>(STORAGE_KEYS.kaeufer, initialKaeufer));
+  const [role, setRoleState] = useState<UserRole>(() => {
+    try {
+      return (localStorage.getItem(ROLE_KEY) as UserRole) || 'forester';
+    } catch { return 'forester'; }
+  });
+  const [polterList, setPolterList] = useState<Polter[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [transporteure, setTransporteure] = useState<Partner[]>([]);
+  const [kaeufer, setKaeufer] = useState<Partner[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    writeStorage(STORAGE_KEYS.role, role);
-  }, [role]);
+  const setRole = useCallback((r: UserRole) => {
+    setRoleState(r);
+    try { localStorage.setItem(ROLE_KEY, r); } catch {}
+  }, []);
 
+  // Fetch all data on mount
   useEffect(() => {
-    writeStorage(STORAGE_KEYS.polterList, polterList);
-  }, [polterList]);
+    const fetchAll = async () => {
+      setLoading(true);
+      const [polterRes, bookingsRes, partnersRes] = await Promise.all([
+        supabase.from('polter').select('*').order('created_at', { ascending: false }),
+        supabase.from('bookings').select('*').order('created_at', { ascending: false }),
+        supabase.from('partners').select('*').order('name'),
+      ]);
 
-  useEffect(() => {
-    writeStorage(STORAGE_KEYS.bookings, bookings);
-  }, [bookings]);
-
-  useEffect(() => {
-    writeStorage(STORAGE_KEYS.transporteure, transporteure);
-  }, [transporteure]);
-
-  useEffect(() => {
-    writeStorage(STORAGE_KEYS.kaeufer, kaeufer);
-  }, [kaeufer]);
+      if (polterRes.data) setPolterList(polterRes.data.map(mapPolterRow));
+      if (bookingsRes.data) setBookings(bookingsRes.data.map(mapBookingRow));
+      if (partnersRes.data) {
+        setTransporteure(partnersRes.data.filter(p => p.typ === 'transporteur').map(p => ({ id: p.id, name: p.name })));
+        setKaeufer(partnersRes.data.filter(p => p.typ === 'kaeufer').map(p => ({ id: p.id, name: p.name })));
+      }
+      setLoading(false);
+    };
+    fetchAll();
+  }, []);
 
   const getBestand = useCallback((polterId: string) => {
     const polter = polterList.find(p => p.id === polterId);
@@ -107,15 +111,57 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return polterList.find(p => p.id === id);
   }, [polterList]);
 
-  const addPolter = useCallback((polter: Polter) => {
-    setPolterList(prev => [...prev, polter]);
+  const addPolter = useCallback(async (polter: Omit<Polter, 'id'>) => {
+    const { data, error } = await supabase.from('polter').insert({
+      name: polter.name,
+      sortiment: polter.sortiment,
+      volumen: polter.volumen,
+      beschreibung: polter.beschreibung,
+      lat: polter.lat,
+      lng: polter.lng,
+      eudr_nummer: polter.eudrNummer,
+      status: polter.status as any,
+      forstbetrieb: polter.forstbetrieb,
+      transporteur_id: polter.transporteurId,
+      transporteur_name: polter.transporteurName,
+      kaeufer_id: polter.kaeuferId,
+      kaeufer_name: polter.kaeuferName,
+    }).select().single();
+
+    if (error) {
+      toast.error('Fehler beim Speichern: ' + error.message);
+      return;
+    }
+    if (data) {
+      setPolterList(prev => [mapPolterRow(data), ...prev]);
+    }
   }, []);
 
-  const updatePolter = useCallback((polter: Polter) => {
+  const updatePolter = useCallback(async (polter: Polter) => {
+    const { error } = await supabase.from('polter').update({
+      name: polter.name,
+      sortiment: polter.sortiment,
+      volumen: polter.volumen,
+      beschreibung: polter.beschreibung,
+      lat: polter.lat,
+      lng: polter.lng,
+      eudr_nummer: polter.eudrNummer,
+      status: polter.status as any,
+      forstbetrieb: polter.forstbetrieb,
+      transporteur_id: polter.transporteurId,
+      transporteur_name: polter.transporteurName,
+      kaeufer_id: polter.kaeuferId,
+      kaeufer_name: polter.kaeuferName,
+    }).eq('id', polter.id);
+
+    if (error) {
+      toast.error('Fehler beim Aktualisieren: ' + error.message);
+      return;
+    }
     setPolterList(prev => prev.map(p => p.id === polter.id ? polter : p));
   }, []);
 
-  const addBooking = useCallback((polterId: string, typ: BookingType, menge: number): boolean => {
+  const addBooking = useCallback(async (polterId: string, typ: BookingType, menge: number): Promise<boolean> => {
     if (typ === 'checkout') {
       const bestand = getBestand(polterId);
       if (menge > bestand) {
@@ -123,16 +169,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return false;
       }
     }
-    const booking: Booking = {
-      id: `bk-${Date.now()}`,
-      polterId,
-      typ,
+
+    const erstelltVon = role === 'forester' ? 'Förster Meier' : role === 'transporter' ? 'Transport Frey AG' : 'Sägewerk Villiger';
+
+    const { data, error } = await supabase.from('bookings').insert({
+      polter_id: polterId,
+      typ: typ as any,
       menge,
-      fotoUrl: null,
-      erstelltVon: role === 'forester' ? 'Förster Meier' : role === 'transporter' ? 'Transport Frey AG' : 'Sägewerk Villiger',
-      erstelltAm: new Date().toISOString(),
-    };
-    setBookings(prev => [...prev, booking]);
+      erstellt_von: erstelltVon,
+    }).select().single();
+
+    if (error) {
+      toast.error('Fehler beim Buchen: ' + error.message);
+      return false;
+    }
+    if (data) {
+      setBookings(prev => [mapBookingRow(data), ...prev]);
+    }
     return true;
   }, [role, getBestand]);
 
@@ -141,28 +194,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [bookings]);
 
   const getFilteredPolter = useCallback(() => {
-    switch (role) {
-      case 'forester':
-        return polterList;
-      case 'transporter':
-        return polterList.filter(p => p.transporteurId === 't1');
-      case 'buyer':
-        return polterList.filter(p => p.kaeuferId === 'b1');
-      default:
-        return polterList;
-    }
-  }, [role, polterList]);
+    // For now show all polter for all roles (no auth yet)
+    return polterList;
+  }, [polterList]);
 
-  const addTransporteur = useCallback((name: string) => {
-    setTransporteure(prev => [...prev, { id: `t-${Date.now()}`, name }]);
+  const addTransporteur = useCallback(async (name: string) => {
+    const { data, error } = await supabase.from('partners').insert({ name, typ: 'transporteur' }).select().single();
+    if (error) {
+      toast.error('Fehler: ' + error.message);
+      return;
+    }
+    if (data) {
+      setTransporteure(prev => [...prev, { id: data.id, name: data.name }]);
+    }
   }, []);
 
-  const addKaeufer = useCallback((name: string) => {
-    setKaeufer(prev => [...prev, { id: `b-${Date.now()}`, name }]);
+  const addKaeufer = useCallback(async (name: string) => {
+    const { data, error } = await supabase.from('partners').insert({ name, typ: 'kaeufer' }).select().single();
+    if (error) {
+      toast.error('Fehler: ' + error.message);
+      return;
+    }
+    if (data) {
+      setKaeufer(prev => [...prev, { id: data.id, name: data.name }]);
+    }
   }, []);
 
   return (
-    <AppContext.Provider value={{ role, setRole, polterList, bookings, transporteure, kaeufer, addPolter, updatePolter, addBooking, getBookingsForPolter, getFilteredPolter, getBestand, getPolterById, addTransporteur, addKaeufer }}>
+    <AppContext.Provider value={{ role, setRole, polterList, bookings, transporteure, kaeufer, loading, addPolter, updatePolter, addBooking, getBookingsForPolter, getFilteredPolter, getBestand, getPolterById, addTransporteur, addKaeufer }}>
       {children}
     </AppContext.Provider>
   );
@@ -171,31 +230,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 export const useApp = () => {
   const ctx = useContext(AppContext);
   if (!ctx) {
-    console.error('AppContext missing: falling back to safe defaults');
-    return {
-      role: 'forester' as UserRole,
-      setRole: () => {},
-      polterList: mockPolter,
-      bookings: mockBookings,
-      transporteure: initialTransporteure,
-      kaeufer: initialKaeufer,
-      addPolter: () => {},
-      updatePolter: () => {},
-      addBooking: () => false,
-      getBookingsForPolter: (polterId: string) => mockBookings.filter(b => b.polterId === polterId),
-      getFilteredPolter: () => mockPolter,
-      getBestand: (polterId: string) => {
-        const polter = mockPolter.find(p => p.id === polterId);
-        const initialVolumen = polter?.volumen ?? 0;
-        const buchungen = mockBookings.filter(b => b.polterId === polterId);
-        const einbuchungen = buchungen.filter(b => b.typ === 'checkin').reduce((sum, b) => sum + b.menge, 0);
-        const ausbuchungen = buchungen.filter(b => b.typ === 'checkout').reduce((sum, b) => sum + b.menge, 0);
-        return initialVolumen + einbuchungen - ausbuchungen;
-      },
-      getPolterById: (id: string) => mockPolter.find(p => p.id === id),
-      addTransporteur: () => {},
-      addKaeufer: () => {},
-    };
+    throw new Error('useApp must be used within AppProvider');
   }
   return ctx;
 };
