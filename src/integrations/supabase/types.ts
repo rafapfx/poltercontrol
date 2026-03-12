@@ -14,7 +14,134 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          created_at: string
+          erstellt_von: string
+          foto_url: string | null
+          id: string
+          menge: number
+          polter_id: string
+          typ: Database["public"]["Enums"]["booking_type"]
+        }
+        Insert: {
+          created_at?: string
+          erstellt_von?: string
+          foto_url?: string | null
+          id?: string
+          menge: number
+          polter_id: string
+          typ: Database["public"]["Enums"]["booking_type"]
+        }
+        Update: {
+          created_at?: string
+          erstellt_von?: string
+          foto_url?: string | null
+          id?: string
+          menge?: number
+          polter_id?: string
+          typ?: Database["public"]["Enums"]["booking_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_polter_id_fkey"
+            columns: ["polter_id"]
+            isOneToOne: false
+            referencedRelation: "polter"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partners: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          typ: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          typ: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          typ?: string
+        }
+        Relationships: []
+      }
+      polter: {
+        Row: {
+          beschreibung: string
+          created_at: string
+          eudr_nummer: string
+          forstbetrieb: string
+          id: string
+          kaeufer_id: string | null
+          kaeufer_name: string | null
+          lat: number
+          lng: number
+          name: string
+          sortiment: string
+          status: Database["public"]["Enums"]["polter_status"]
+          transporteur_id: string | null
+          transporteur_name: string | null
+          volumen: number
+        }
+        Insert: {
+          beschreibung?: string
+          created_at?: string
+          eudr_nummer?: string
+          forstbetrieb?: string
+          id?: string
+          kaeufer_id?: string | null
+          kaeufer_name?: string | null
+          lat: number
+          lng: number
+          name: string
+          sortiment: string
+          status?: Database["public"]["Enums"]["polter_status"]
+          transporteur_id?: string | null
+          transporteur_name?: string | null
+          volumen?: number
+        }
+        Update: {
+          beschreibung?: string
+          created_at?: string
+          eudr_nummer?: string
+          forstbetrieb?: string
+          id?: string
+          kaeufer_id?: string | null
+          kaeufer_name?: string | null
+          lat?: number
+          lng?: number
+          name?: string
+          sortiment?: string
+          status?: Database["public"]["Enums"]["polter_status"]
+          transporteur_id?: string | null
+          transporteur_name?: string | null
+          volumen?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "polter_kaeufer_id_fkey"
+            columns: ["kaeufer_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "polter_transporteur_id_fkey"
+            columns: ["transporteur_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +150,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      booking_type: "checkin" | "checkout"
+      polter_status:
+        | "Neu"
+        | "Bereit"
+        | "Transport zugewiesen"
+        | "Abgeholt"
+        | "Geliefert"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +283,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      booking_type: ["checkin", "checkout"],
+      polter_status: [
+        "Neu",
+        "Bereit",
+        "Transport zugewiesen",
+        "Abgeholt",
+        "Geliefert",
+      ],
+    },
   },
 } as const
