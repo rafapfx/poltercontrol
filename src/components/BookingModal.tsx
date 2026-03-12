@@ -19,13 +19,13 @@ const BookingModal = ({ polter, defaultType, onClose }: Props) => {
   const recentBookings = getBookingsForPolter(polter.id).slice(0, 3);
   const bestand = getBestand(polter.id);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const val = parseFloat(menge);
     if (!val || val <= 0) {
       toast.error('Bitte gültige Menge eingeben');
       return;
     }
-    const success = addBooking(polter.id, typ, val);
+    const success = await addBooking(polter.id, typ, val);
     if (success) {
       toast.success(`${typ === 'checkin' ? 'Einbuchung' : 'Ausbuchung'} erfolgreich: ${val} fm`);
       onClose();
