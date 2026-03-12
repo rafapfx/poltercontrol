@@ -162,6 +162,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPolterList(prev => prev.map(p => p.id === polter.id ? polter : p));
   }, []);
 
+  const deletePolter = useCallback(async (id: string) => {
+    const { error } = await supabase.from('polter').delete().eq('id', id);
+    if (error) {
+      toast.error('Fehler beim Löschen: ' + error.message);
+      return;
+    }
+    setPolterList(prev => prev.filter(p => p.id !== id));
+    setBookings(prev => prev.filter(b => b.polterId !== id));
+    toast.success('Polter gelöscht');
+  }, []);
+
   const addBooking = useCallback(async (polterId: string, typ: BookingType, menge: number): Promise<boolean> => {
     if (typ === 'checkout') {
       const bestand = getBestand(polterId);
