@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { X, LogIn, LogOut, MapPin, FileText, Clock } from 'lucide-react';
+import { X, LogIn, LogOut, MapPin, FileText, Clock, Pencil } from 'lucide-react';
 import { Polter } from '@/lib/types';
 import { useApp } from '@/contexts/AppContext';
 import StatusBadge from './StatusBadge';
 import BookingModal from './BookingModal';
+import EditPolterModal from './EditPolterModal';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 
@@ -15,6 +16,7 @@ interface Props {
 const PolterDetailCard = ({ polter, onClose }: Props) => {
   const [tab, setTab] = useState<'beschreibung' | 'historie'>('beschreibung');
   const [bookingType, setBookingType] = useState<'checkin' | 'checkout' | null>(null);
+  const [showEdit, setShowEdit] = useState(false);
   const { getBookingsForPolter, getBestand, role } = useApp();
   const bookings = getBookingsForPolter(polter.id);
   const bestand = getBestand(polter.id);
@@ -27,19 +29,28 @@ const PolterDetailCard = ({ polter, onClose }: Props) => {
   return (
     <>
       <div className="w-full max-w-md overflow-hidden rounded-t-2xl sm:rounded-2xl border bg-card shadow-2xl max-h-[85vh] flex flex-col">
-        {/* Drag indicator for mobile */}
         <div className="flex justify-center pt-2 pb-0 sm:hidden">
           <div className="h-1 w-10 rounded-full bg-muted-foreground/30" />
         </div>
 
         <div className="flex items-center justify-between px-5 py-3 shrink-0">
           <h3 className="text-lg font-semibold text-foreground">{polter.name}</h3>
-          <button
-            onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 active:scale-95"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            {role === 'forester' && (
+              <button
+                onClick={() => setShowEdit(true)}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary active:scale-95"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 active:scale-95"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         <div className="flex border-b shrink-0 px-1">
@@ -160,6 +171,14 @@ const PolterDetailCard = ({ polter, onClose }: Props) => {
           polter={polter}
           defaultType={bookingType}
           onClose={handleBookingDone}
+        />
+      )}
+
+      {showEdit && (
+        <EditPolterModal
+          polter={polter}
+          onClose={() => setShowEdit(false)}
+          onDeleted={onClose}
         />
       )}
     </>

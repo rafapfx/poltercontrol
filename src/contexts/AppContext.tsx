@@ -18,6 +18,7 @@ interface AppContextType {
   loading: boolean;
   addPolter: (polter: Omit<Polter, 'id'>) => Promise<void>;
   updatePolter: (polter: Polter) => Promise<void>;
+  deletePolter: (id: string) => Promise<void>;
   addBooking: (polterId: string, typ: BookingType, menge: number) => Promise<boolean>;
   getBookingsForPolter: (polterId: string) => Booking[];
   getFilteredPolter: () => Polter[];
@@ -161,6 +162,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPolterList(prev => prev.map(p => p.id === polter.id ? polter : p));
   }, []);
 
+  const deletePolter = useCallback(async (id: string) => {
+    const { error } = await supabase.from('polter').delete().eq('id', id);
+    if (error) {
+      toast.error('Fehler beim Löschen: ' + error.message);
+      return;
+    }
+    setPolterList(prev => prev.filter(p => p.id !== id));
+    setBookings(prev => prev.filter(b => b.polterId !== id));
+    toast.success('Polter gelöscht');
+  }, []);
+
   const addBooking = useCallback(async (polterId: string, typ: BookingType, menge: number): Promise<boolean> => {
     if (typ === 'checkout') {
       const bestand = getBestand(polterId);
@@ -221,7 +233,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   return (
-    <AppContext.Provider value={{ role, setRole, polterList, bookings, transporteure, kaeufer, loading, addPolter, updatePolter, addBooking, getBookingsForPolter, getFilteredPolter, getBestand, getPolterById, addTransporteur, addKaeufer }}>
+    <AppContext.Provider value={{ role, setRole, polterList, bookings, transporteure, kaeufer, loading, addPolter, updatePolter, deletePolter, addBooking, getBookingsForPolter, getFilteredPolter, getBestand, getPolterById, addTransporteur, addKaeufer }}>
       {children}
     </AppContext.Provider>
   );
