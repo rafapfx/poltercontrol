@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { useApp } from '@/contexts/AppContext';
 import { sortimentOptions, transporteure, kaeufer } from '@/lib/mock-data';
 import { Polter } from '@/lib/types';
-import { toast } from 'sonner';
 
 interface Props {
   open: boolean;
