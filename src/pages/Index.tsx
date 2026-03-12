@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { List, Map, Plus } from 'lucide-react';
+import { List, Map, Plus, Users } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
 import PolterListView from '@/components/PolterListView';
 import PolterMapView from '@/components/PolterMapView';
 import PolterDetailCard from '@/components/PolterDetailCard';
-import BookingModal from '@/components/BookingModal';
 import CreatePolterDialog from '@/components/CreatePolterDialog';
+import ManagePartnersDialog from '@/components/ManagePartnersDialog';
 import { useApp } from '@/contexts/AppContext';
 import { Polter } from '@/lib/types';
 
@@ -15,6 +15,7 @@ const Index = () => {
   const [view, setView] = useState<ViewMode>('liste');
   const [selectedPolter, setSelectedPolter] = useState<Polter | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [showPartners, setShowPartners] = useState(false);
   const { role } = useApp();
 
   return (
@@ -44,13 +45,22 @@ const Index = () => {
         </div>
 
         {role === 'forester' && (
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Neuer Polter</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowPartners(true)}
+              className="flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted"
+            >
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Partner</span>
+            </button>
+            <button
+              onClick={() => setShowCreate(true)}
+              className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Neuer Polter</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -73,6 +83,7 @@ const Index = () => {
       )}
 
       <CreatePolterDialog open={showCreate} onClose={() => setShowCreate(false)} />
+      <ManagePartnersDialog open={showPartners} onClose={() => setShowPartners(false)} />
     </div>
   );
 };
