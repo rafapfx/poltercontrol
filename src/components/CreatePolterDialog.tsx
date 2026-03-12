@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, LocateFixed, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useApp } from '@/contexts/AppContext';
 import { sortimentOptions, transporteure, kaeufer } from '@/lib/mock-data';
 import { Polter } from '@/lib/types';
-import { toast } from 'sonner';
 
 interface Props {
   open: boolean;
@@ -12,6 +12,7 @@ interface Props {
 
 const CreatePolterDialog = ({ open, onClose }: Props) => {
   const { addPolter } = useApp();
+  const [locating, setLocating] = useState(false);
   const [form, setForm] = useState({
     name: '',
     sortiment: sortimentOptions[0],
@@ -89,14 +90,39 @@ const CreatePolterDialog = ({ open, onClose }: Props) => {
             <label className={labelClass}>Beschreibung</label>
             <textarea className="w-full rounded-lg border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" rows={2} value={form.beschreibung} onChange={e => setForm({ ...form, beschreibung: e.target.value })} placeholder="Beschreibung..." />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>Breitengrad</label>
-              <input className={inputClass} type="number" step="0.0001" value={form.lat} onChange={e => setForm({ ...form, lat: e.target.value })} />
+          <div>
+            <div className="mb-1.5 flex items-center justify-between">
+              <label className="text-sm font-medium text-foreground">Standort</label>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!navigator.geolocation) {
+                    toast.error('Geolocation wird von diesem Browser nicht unterstützt');
+                    return;
+                  }
+                  setLocating(true);
+                  navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                      setForm(f => ({ ...f, lat: pos.coords.latitude.toFixed(6), lng: pos.coords.longitude.toFixed(6) }));
+                      setLocating(false);
+                      toast.success('Standort ermittelt');
+                    },
+                    (err) => {
+                      setLocating(false);
+                      toast.error('Standort konnte nicht ermittelt werden');
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                  );
+                }}
+                className="flex items-center gap-1 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+              >
+                {locating ? <Loader2 className="h-3 w-3 animate-spin" /> : <LocateFixed className="h-3 w-3" />}
+                Mein Standort
+              </button>
             </div>
-            <div>
-              <label className={labelClass}>Längengrad</label>
-              <input className={inputClass} type="number" step="0.0001" value={form.lng} onChange={e => setForm({ ...form, lng: e.target.value })} />
+            <div className="grid grid-cols-2 gap-4">
+              <input className={inputClass} type="number" step="0.0001" placeholder="Breitengrad" value={form.lat} onChange={e => setForm({ ...form, lat: e.target.value })} />
+              <input className={inputClass} type="number" step="0.0001" placeholder="Längengrad" value={form.lng} onChange={e => setForm({ ...form, lng: e.target.value })} />
             </div>
           </div>
           <div>
