@@ -3,7 +3,7 @@ import { X, Plus, LocateFixed, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useApp } from '@/contexts/AppContext';
 import { sortimentOptions } from '@/lib/mock-data';
-import { Polter } from '@/lib/types';
+
 
 interface Props {
   open: boolean;
