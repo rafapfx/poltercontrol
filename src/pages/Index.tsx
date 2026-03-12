@@ -20,14 +20,14 @@ const Index = () => {
   const selectedPolter = selectedPolterId ? getPolterById(selectedPolterId) : undefined;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background touch-pan-y">
       <AppHeader />
 
-      <div className="flex items-center justify-between border-b bg-card px-4 py-3">
-        <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
+      <div className="flex items-center justify-between border-b bg-card px-3 sm:px-4 py-2.5 sm:py-3">
+        <div className="flex items-center gap-0.5 rounded-xl bg-muted p-1">
           <button
             onClick={() => setView('liste')}
-            className={`flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium transition-all ${
+            className={`flex items-center gap-1.5 rounded-lg px-3.5 sm:px-4 py-2 text-sm font-medium transition-all ${
               view === 'liste' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -36,7 +36,7 @@ const Index = () => {
           </button>
           <button
             onClick={() => setView('karte')}
-            className={`flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium transition-all ${
+            className={`flex items-center gap-1.5 rounded-lg px-3.5 sm:px-4 py-2 text-sm font-medium transition-all ${
               view === 'karte' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -49,14 +49,14 @@ const Index = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowPartners(true)}
-              className="flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted"
+              className="flex h-10 items-center gap-1.5 rounded-xl border px-3 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-muted active:scale-95"
             >
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Partner</span>
             </button>
             <button
               onClick={() => setShowCreate(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+              className="flex h-10 items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-95"
             >
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Neuer Polter</span>
@@ -76,8 +76,14 @@ const Index = () => {
       </main>
 
       {selectedPolter && view === 'liste' && (
-        <div className="fixed inset-0 z-[1500] flex items-end sm:items-center justify-center bg-black/50" onClick={() => setSelectedPolterId(null)}>
-          <div onClick={e => e.stopPropagation()} className="w-full sm:w-auto">
+        <div
+          className="fixed inset-0 z-[1500] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
+          onClick={() => setSelectedPolterId(null)}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            className="w-full sm:w-auto animate-in slide-in-from-bottom duration-300 sm:animate-in sm:fade-in sm:zoom-in-95"
+          >
             <PolterDetailCard polter={selectedPolter} onClose={() => setSelectedPolterId(null)} />
           </div>
         </div>

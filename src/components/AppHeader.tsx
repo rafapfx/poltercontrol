@@ -21,19 +21,19 @@ const AppHeader = () => {
           </span>
         </div>
 
-        <div className="flex items-center gap-0.5 sm:gap-1 rounded-lg bg-muted p-0.5 sm:p-1">
+        <div className="flex items-center gap-0.5 rounded-xl bg-muted p-1">
           {roles.map((r) => (
             <button
               key={r.value}
               onClick={() => setRole(r.value)}
-              className={`flex items-center gap-1 sm:gap-1.5 rounded-md px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium transition-all ${
+              className={`flex items-center gap-1 sm:gap-1.5 rounded-lg px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-medium transition-all active:scale-95 ${
                 role === r.value
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {r.icon}
-              <span className="hidden xs:inline sm:inline">{r.label}</span>
+              <span className="hidden sm:inline">{r.label}</span>
             </button>
           ))}
         </div>

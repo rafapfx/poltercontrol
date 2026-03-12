@@ -31,7 +31,12 @@ const PolterMapView = () => {
       ? [polter[0].lat, polter[0].lng]
       : [47.39, 8.05];
 
-    mapRef.current = L.map(containerRef.current).setView(center, 13);
+    mapRef.current = L.map(containerRef.current, {
+      zoomControl: false,
+    }).setView(center, 13);
+
+    // Add zoom control top-right
+    L.control.zoom({ position: 'topright' }).addTo(mapRef.current);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -91,27 +96,35 @@ const PolterMapView = () => {
   };
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full touch-auto">
       <div
         ref={containerRef}
-        className="h-full w-full"
+        className="h-full w-full touch-auto"
         style={{ minHeight: 'calc(100vh - 7.5rem)' }}
       />
 
       <button
         onClick={handleLocate}
-        className="absolute bottom-6 left-4 z-[1000] flex items-center gap-1.5 rounded-lg bg-card px-3 py-2 text-sm font-medium text-foreground shadow-lg border transition-colors hover:bg-muted"
+        className="absolute bottom-6 left-4 z-[1000] flex h-12 items-center gap-2 rounded-xl bg-card px-4 text-sm font-medium text-foreground shadow-lg border transition-colors hover:bg-muted active:scale-95"
       >
-        <LocateFixed className="h-4 w-4 text-primary" />
+        <LocateFixed className="h-5 w-5 text-primary" />
         <span className="hidden sm:inline">Mein Standort</span>
       </button>
 
       {selected && (
-        <div className="absolute right-2 top-2 z-[1000] sm:right-4 sm:top-4 w-[calc(100%-1rem)] sm:w-96">
-          <PolterDetailCard
-            polter={selected}
-            onClose={() => setSelectedId(null)}
-          />
+        <div
+          className="fixed inset-0 z-[1500] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
+          onClick={() => setSelectedId(null)}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            className="w-full sm:w-auto animate-in slide-in-from-bottom duration-300 sm:animate-in sm:fade-in sm:zoom-in-95"
+          >
+            <PolterDetailCard
+              polter={selected}
+              onClose={() => setSelectedId(null)}
+            />
+          </div>
         </div>
       )}
     </div>

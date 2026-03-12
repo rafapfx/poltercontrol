@@ -26,38 +26,46 @@ const PolterDetailCard = ({ polter, onClose }: Props) => {
 
   return (
     <>
-      <div className="w-full max-w-md overflow-hidden rounded-t-2xl sm:rounded-xl border bg-card shadow-lg sm:max-w-sm md:max-w-md max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between border-b bg-primary/5 px-4 py-3 shrink-0">
-          <h3 className="font-semibold text-foreground">{polter.name}</h3>
-          <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
+      <div className="w-full max-w-md overflow-hidden rounded-t-2xl sm:rounded-2xl border bg-card shadow-2xl max-h-[85vh] flex flex-col">
+        {/* Drag indicator for mobile */}
+        <div className="flex justify-center pt-2 pb-0 sm:hidden">
+          <div className="h-1 w-10 rounded-full bg-muted-foreground/30" />
+        </div>
+
+        <div className="flex items-center justify-between px-5 py-3 shrink-0">
+          <h3 className="text-lg font-semibold text-foreground">{polter.name}</h3>
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 active:scale-95"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="flex border-b shrink-0">
+        <div className="flex border-b shrink-0 px-1">
           <button
             onClick={() => setTab('beschreibung')}
-            className={`flex flex-1 items-center justify-center gap-1.5 py-2.5 text-sm font-medium transition-colors ${
+            className={`flex flex-1 items-center justify-center gap-1.5 py-3 text-sm font-medium transition-colors ${
               tab === 'beschreibung' ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            <FileText className="h-3.5 w-3.5" />
+            <FileText className="h-4 w-4" />
             Beschreibung
           </button>
           <button
             onClick={() => setTab('historie')}
-            className={`flex flex-1 items-center justify-center gap-1.5 py-2.5 text-sm font-medium transition-colors ${
+            className={`flex flex-1 items-center justify-center gap-1.5 py-3 text-sm font-medium transition-colors ${
               tab === 'historie' ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            <Clock className="h-3.5 w-3.5" />
+            <Clock className="h-4 w-4" />
             Historie
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1">
+        <div className="overflow-y-auto flex-1 overscroll-contain">
           {tab === 'beschreibung' ? (
-            <div className="space-y-3 p-4">
+            <div className="space-y-3 p-5">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Sortiment</span>
                 <span className="text-sm font-medium text-foreground">{polter.sortiment}</span>
@@ -66,9 +74,9 @@ const PolterDetailCard = ({ polter, onClose }: Props) => {
                 <span className="text-sm text-muted-foreground">Anfangsvolumen</span>
                 <span className="text-sm text-muted-foreground">{polter.volumen} fm</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-primary/10 px-3 py-2">
+              <div className="flex items-center justify-between rounded-xl bg-primary/10 px-4 py-3">
                 <span className="text-sm font-medium text-foreground">Aktueller Bestand</span>
-                <span className="text-base font-bold text-primary">{bestand.toFixed(1)} fm</span>
+                <span className="text-lg font-bold text-primary">{bestand.toFixed(1)} fm</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Status</span>
@@ -79,10 +87,10 @@ const PolterDetailCard = ({ polter, onClose }: Props) => {
                 <span className="font-mono text-xs text-foreground">{polter.eudrNummer}</span>
               </div>
               <div className="flex items-start gap-2">
-                <MapPin className="mt-0.5 h-3.5 w-3.5 text-muted-foreground" />
+                <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">{polter.lat.toFixed(5)}, {polter.lng.toFixed(5)}</span>
               </div>
-              <p className="text-sm text-muted-foreground">{polter.beschreibung}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{polter.beschreibung}</p>
               {polter.transporteurName && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Transporteur</span>
@@ -97,17 +105,17 @@ const PolterDetailCard = ({ polter, onClose }: Props) => {
               )}
 
               {role !== 'buyer' && (
-                <div className="flex gap-2 pt-2">
+                <div className="flex gap-3 pt-3">
                   <button
                     onClick={() => setBookingType('checkin')}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.97]"
                   >
                     <LogIn className="h-4 w-4" />
                     Einbuchen
                   </button>
                   <button
                     onClick={() => setBookingType('checkout')}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-amber-500 py-2.5 text-sm font-medium text-white transition-colors hover:bg-amber-600"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-amber-500 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-amber-600 active:scale-[0.97]"
                   >
                     <LogOut className="h-4 w-4" />
                     Ausbuchen
@@ -118,26 +126,26 @@ const PolterDetailCard = ({ polter, onClose }: Props) => {
           ) : (
             <div className="divide-y">
               {bookings.length === 0 && (
-                <p className="p-4 text-center text-sm text-muted-foreground">Keine Buchungen vorhanden</p>
+                <p className="p-6 text-center text-sm text-muted-foreground">Keine Buchungen vorhanden</p>
               )}
               {bookings.map((b) => (
-                <div key={b.id} className="flex items-center justify-between px-4 py-3">
+                <div key={b.id} className="flex items-center justify-between px-5 py-3.5">
                   <div>
                     <div className="flex items-center gap-2">
                       {b.typ === 'checkin' ? (
-                        <LogIn className="h-3.5 w-3.5 text-primary" />
+                        <LogIn className="h-4 w-4 text-primary" />
                       ) : (
-                        <LogOut className="h-3.5 w-3.5 text-amber-500" />
+                        <LogOut className="h-4 w-4 text-amber-500" />
                       )}
                       <span className="text-sm font-medium text-foreground">
-                        {b.typ === 'checkin' ? 'Einbuchen' : 'Ausbuchen'}
+                        {b.typ === 'checkin' ? 'Einbuchung' : 'Ausbuchung'}
                       </span>
                     </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {format(new Date(b.erstelltAm), 'dd.MM.yyyy HH:mm', { locale: de })} · {b.erstelltVon}
                     </p>
                   </div>
-                  <span className={`text-sm font-semibold ${b.typ === 'checkin' ? 'text-primary' : 'text-amber-600'}`}>
+                  <span className={`text-sm font-bold ${b.typ === 'checkin' ? 'text-primary' : 'text-amber-600'}`}>
                     {b.typ === 'checkin' ? '+' : '-'}{b.menge} fm
                   </span>
                 </div>
