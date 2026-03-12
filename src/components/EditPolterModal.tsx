@@ -13,6 +13,13 @@ interface Props {
   onDeleted: () => void;
 }
 
+const FormField = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div>
+    <label className="mb-2 block text-[13px] font-medium text-muted-foreground">{label}</label>
+    {children}
+  </div>
+);
+
 const EditPolterModal = ({ polter, onClose, onDeleted }: Props) => {
   const { updatePolter, deletePolter, transporteure, kaeufer } = useApp();
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -59,88 +66,86 @@ const EditPolterModal = ({ polter, onClose, onDeleted }: Props) => {
     onDeleted();
   };
 
-  const inputClass = "h-12 w-full rounded-xl border bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow";
-  const labelClass = "mb-1.5 block text-sm font-medium text-foreground";
+  const inputClass = "h-12 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all appearance-none";
+  const selectClass = `${inputClass} cursor-pointer`;
 
   return (
-    <div className="fixed inset-0 z-[2500] flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center">
-      <div className="w-full max-w-lg rounded-t-2xl bg-card sm:rounded-2xl shadow-2xl max-h-[90vh] flex flex-col">
-        <div className="flex justify-center pt-2 pb-0 sm:hidden">
-          <div className="h-1 w-10 rounded-full bg-muted-foreground/30" />
+    <div className="fixed inset-0 z-[2500] flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-t-2xl bg-card sm:rounded-2xl shadow-2xl max-h-[92vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        {/* Drag indicator */}
+        <div className="flex justify-center pt-2.5 pb-0 sm:hidden">
+          <div className="h-1 w-10 rounded-full bg-muted-foreground/25" />
         </div>
 
-        <div className="flex items-center justify-between px-5 py-4 shrink-0">
-          <h2 className="text-lg font-semibold text-foreground">Polter bearbeiten</h2>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 shrink-0">
+          <h2 className="text-lg font-bold text-foreground tracking-tight">Polter bearbeiten</h2>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 active:scale-95"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 active:scale-95"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1 overscroll-contain space-y-4 px-5 pb-2">
-          <div>
-            <label className={labelClass}>Name</label>
-            <input className={inputClass} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-          </div>
+        {/* Form */}
+        <div className="overflow-y-auto flex-1 overscroll-contain px-6 pb-4 space-y-5">
+          <FormField label="Name">
+            <input className={inputClass} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Polter-Name" />
+          </FormField>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelClass}>Sortiment</label>
-              <select className={inputClass} value={form.sortiment} onChange={e => setForm({ ...form, sortiment: e.target.value })}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField label="Sortiment">
+              <select className={selectClass} value={form.sortiment} onChange={e => setForm({ ...form, sortiment: e.target.value })}>
                 {sortimentOptions.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
-            </div>
-            <div>
-              <label className={labelClass}>Status</label>
-              <select className={inputClass} value={form.status} onChange={e => setForm({ ...form, status: e.target.value as PolterStatus })}>
+            </FormField>
+            <FormField label="Status">
+              <select className={selectClass} value={form.status} onChange={e => setForm({ ...form, status: e.target.value as PolterStatus })}>
                 {statusOptions.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
-            </div>
+            </FormField>
           </div>
 
-          <div>
-            <label className={labelClass}>Beschreibung</label>
+          <FormField label="Beschreibung">
             <textarea
-              className="w-full rounded-xl border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow"
-              rows={2}
+              className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
+              rows={3}
               value={form.beschreibung}
               onChange={e => setForm({ ...form, beschreibung: e.target.value })}
+              placeholder="Beschreibung des Polters..."
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label className={labelClass}>EUDR-Nummer</label>
-            <input className={inputClass} value={form.eudrNummer} onChange={e => setForm({ ...form, eudrNummer: e.target.value })} />
-          </div>
+          <FormField label="EUDR-Nummer">
+            <input className={inputClass} value={form.eudrNummer} onChange={e => setForm({ ...form, eudrNummer: e.target.value })} placeholder="EUDR-2026-..." />
+          </FormField>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelClass}>Transporteur</label>
-              <select className={inputClass} value={form.transporteurId} onChange={e => setForm({ ...form, transporteurId: e.target.value })}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField label="Transporteur">
+              <select className={selectClass} value={form.transporteurId} onChange={e => setForm({ ...form, transporteurId: e.target.value })}>
                 <option value="">— Keiner —</option>
                 {transporteure.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
-            </div>
-            <div>
-              <label className={labelClass}>Käufer</label>
-              <select className={inputClass} value={form.kaeuferId} onChange={e => setForm({ ...form, kaeuferId: e.target.value })}>
+            </FormField>
+            <FormField label="Käufer">
+              <select className={selectClass} value={form.kaeuferId} onChange={e => setForm({ ...form, kaeuferId: e.target.value })}>
                 <option value="">— Keiner —</option>
                 {kaeufer.map(k => <option key={k.id} value={k.id}>{k.name}</option>)}
               </select>
-            </div>
+            </FormField>
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t px-5 py-4 shrink-0">
+        {/* Footer */}
+        <div className="flex items-center justify-between border-t px-6 py-4 shrink-0 gap-3">
           {!confirmDelete ? (
             <button
               onClick={() => setConfirmDelete(true)}
               className="flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-medium text-destructive transition-all hover:bg-destructive/10 active:scale-95"
             >
               <Trash2 className="h-4 w-4" />
-              Löschen
+              <span className="hidden sm:inline">Löschen</span>
             </button>
           ) : (
             <button
@@ -155,14 +160,14 @@ const EditPolterModal = ({ polter, onClose, onDeleted }: Props) => {
           <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="rounded-xl border px-4 py-2.5 text-sm font-medium text-foreground transition-all hover:bg-muted active:scale-95"
+              className="rounded-xl border px-4 py-2.5 text-sm font-medium text-foreground transition-all hover:bg-muted active:scale-95 hidden sm:block"
             >
               Abbrechen
             </button>
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-95 disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
               Speichern
