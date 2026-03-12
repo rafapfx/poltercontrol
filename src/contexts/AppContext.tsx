@@ -233,7 +233,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   return (
-    <AppContext.Provider value={{ role, setRole, polterList, bookings, transporteure, kaeufer, loading, addPolter, updatePolter, addBooking, getBookingsForPolter, getFilteredPolter, getBestand, getPolterById, addTransporteur, addKaeufer }}>
+    <AppContext.Provider value={{ role, setRole, polterList, bookings, transporteure, kaeufer, loading, addPolter, updatePolter, deletePolter, addBooking, getBookingsForPolter, getFilteredPolter, getBestand, getPolterById, addTransporteur, addKaeufer }}>
       {children}
     </AppContext.Provider>
   );
