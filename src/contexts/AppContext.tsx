@@ -18,6 +18,7 @@ interface AppContextType {
   loading: boolean;
   addPolter: (polter: Omit<Polter, 'id'>) => Promise<void>;
   updatePolter: (polter: Polter) => Promise<void>;
+  deletePolter: (id: string) => Promise<void>;
   addBooking: (polterId: string, typ: BookingType, menge: number) => Promise<boolean>;
   getBookingsForPolter: (polterId: string) => Booking[];
   getFilteredPolter: () => Polter[];
